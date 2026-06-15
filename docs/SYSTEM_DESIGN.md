@@ -17,7 +17,7 @@ Designing a highly available, scalable, and responsive video streaming platform 
 - Security: Endpoints should be protected via JWT.
 
 ## High-Level Design
-The system uses a 3-tier architecture. A Streamlit frontend interacts with a FastAPI backend. The backend manages local file storage and communicates with MongoDB Atlas for structured and document data.
+The system uses a 3-tier architecture. A native HTML/JS frontend powered by Jinja2 interacts with a FastAPI backend. The backend manages local file storage and communicates with MongoDB Atlas for structured and document data.
 
 ## Low-Level Design
 The backend is split into RESTful API endpoints grouped by domain: `auth`, `videos`, `search`, `social`, and `playlists`. Data validation is handled via Pydantic models.

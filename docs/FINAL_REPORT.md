@@ -14,7 +14,7 @@ A microservice-ready architecture was adopted, featuring a FastAPI backend for a
 
 ## 3. Architecture
 *(See system architecture diagrams in the `/architecture` folder)*
-- **Presentation Layer**: Streamlit / Jinja2 UI
+- **Presentation Layer**: Native HTML / JS / Bootstrap 5 (Jinja2 UI)
 - **Application Layer**: FastAPI API Gateway & Service Routes
 - **Data Layer**: MongoDB (Users, Videos, Interactions)
 - **Storage Layer**: Local volume for `uploads/videos/`
