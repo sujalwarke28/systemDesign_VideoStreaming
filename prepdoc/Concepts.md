@@ -49,3 +49,17 @@ Before the server sends the HTML file to the browser, Jinja2 parses the file and
 
 ### 4. Dependency Injection
 FastAPI uses dependency injection extensively (e.g., `Depends(get_current_user)`). Before a route function runs, FastAPI automatically executes the dependency function. If the token is missing or invalid, the dependency throws a 401 error, protecting the route without requiring repetitive authorization code in every endpoint.
+
+## Frontend & UI Concepts
+
+### 1. Single Page Application (SPA) Aesthetics
+Using AJAX (Asynchronous JavaScript and XML) via the `fetch` API allows us to dynamically alter the DOM (Document Object Model) without refreshing the webpage. This creates a seamless, app-like experience (like instantly appending a comment or toggling a Like button).
+
+### 2. SVG (Scalable Vector Graphics) Data URIs
+Instead of linking an external `.ico` or `.png` file for the browser tab favicon, we directly embed XML-based SVG code into the HTML document using a `data:image/svg+xml` URI. This saves HTTP requests and allows infinite scaling without pixelation.
+
+### 3. CSS Transitions & DOM Manipulation
+By leveraging CSS classes (like `transition: margin-left 0.2s`), we can animate layout changes smoothly. When a user clicks the hamburger menu, JavaScript manipulates the DOM to swap Bootstrap grid classes (`d-none`, `d-block`), triggering hardware-accelerated CSS animations.
+
+### 4. Toast Notifications
+Instead of blocking the main thread with native `alert()` popups, we use Bootstrap Toast components. JavaScript dynamically injects messages and contextual color classes (`bg-success`, `bg-danger`) into a hidden HTML element, and triggers Bootstrap's built-in CSS fade animations to gracefully display non-blocking alerts to the user.

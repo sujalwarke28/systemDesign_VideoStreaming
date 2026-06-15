@@ -37,6 +37,9 @@ This document contains a curated list of questions ranging from Beginner to Adva
 **Q4: How does a user register an account?**
 **Answer**: The user submits their username, email, and password via the frontend form. The Javascript intercepts the submission, packages the data into JSON, and sends an HTTP POST request to the `/auth/register` endpoint. The backend hashes the password using bcrypt and saves the document in MongoDB.
 
+**Q5: How did you implement icons in the project without using image files?**
+**Answer**: I used Bootstrap Icons, which are SVGs (Scalable Vector Graphics) injected via CSS classes (e.g., `bi-play-btn-fill`). I also used a Data URI (`data:image/svg+xml`) directly inside the `<link rel="icon">` tag to render an SVG as the browser tab favicon without needing an external `.ico` file.
+
 ---
 
 ## Intermediate Level
@@ -52,6 +55,9 @@ This document contains a curated list of questions ranging from Beginner to Adva
 
 **Q8: How did you implement the "Trending" logic?**
 **Answer**: Every time a user clicks on a video, the `views` integer inside the MongoDB video document is incremented. The backend `GET /videos/trending` endpoint simply queries the database and sorts the results by the `views` field in descending order (`-1`).
+
+**Q9: How did you replace native browser alerts with custom Toast notifications?**
+**Answer**: I created a single hidden Bootstrap Toast container in the `base.html` template. I wrote a global JavaScript function `showToast(message, type)` that selects this container, updates its inner text, dynamically adds context color classes (like `bg-success` for success, `bg-danger` for errors), and triggers Bootstrap's fade-in animation using JavaScript. This provides a non-blocking, modern user experience compared to `alert()`.
 
 ---
 

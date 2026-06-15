@@ -63,3 +63,13 @@ This document outlines all the core functionalities implemented in the StreamTub
 - **Jinja2 Templating**: Instead of writing separate HTML files for Home, History, and Search, we use Jinja2. The backend injects a variable (`api_endpoint`) into the `index.html` template before sending it to the user.
 - **Javascript Rendering**: The frontend Javascript looks at the `api_endpoint` variable. If it's on the History page, it fetches from `/playlists/history`; if on Home, it fetches from `/videos/trending`. It then loops through the returned JSON array and dynamically generates the HTML cards for the video grid.
 - **Responsive Grid**: We use Bootstrap 5's Flexbox grid (`col-lg-9`, `col-lg-3`) combined with Javascript toggle functions. When the user watches a video, Javascript removes the sidebar, causing the video player grid column to expand and fill the extra space automatically. The "Up Next" container filters out the currently playing video and populates itself with the remaining fetched videos.
+
+---
+
+## 8. Advanced UI Aesthetics & Animations
+**Functionality**: The application provides a sleek, modern, YouTube-style aesthetic with micro-animations and feedback.
+**How it works**:
+- **Icons & Favicon**: We utilize `bootstrap-icons` for highly scalable SVG iconography (e.g., `bi-play-btn-fill`). The browser tab favicon is rendered dynamically by injecting raw SVG markup into a base64/URL-encoded data URI (`data:image/svg+xml`) inside the `<link rel="icon">` tag, avoiding the need for an external image file.
+- **Toast Notifications**: Native Javascript `alert()` popups block the main thread and provide poor user experience. We replaced them with a global **Bootstrap Toast Notification** system. A single hidden Toast HTML element resides in `base.html`. The global `showToast()` Javascript utility manipulates the DOM to inject dynamic text, change the background color class (e.g., `bg-success`, `bg-danger`), and triggers Bootstrap's CSS fade-in transitions.
+- **Collapsible Sidebar**: The hamburger menu toggles a sidebar via DOM class manipulation. Instead of instantly snapping, we apply a custom CSS transition (`transition: margin-left 0.2s`) so the sidebar slides smoothly off the screen.
+- **Unauthenticated State Centering**: When a user attempts to access a protected page (like History) without a token, the frontend intercepts the `401 Unauthorized` API response. It strips the default Bootstrap grid columns and applies absolute Flexbox centering (`d-flex flex-column align-items-center justify-content-center w-100`) with a `70vh` min-height to perfectly center a beautiful sign-in prompt exactly in the middle of the screen.
