@@ -16,7 +16,7 @@ async def search_videos(
     
     if q:
         regex = re.compile(q, re.IGNORECASE)
-        query_filter["$or"] = [{"title": regex}, {"description": regex}]
+        query_filter["$or"] = [{"title": regex}, {"description": regex}, {"creator_name": regex}]
         
     if tags:
         tag_list = [t.strip() for t in tags.split(",") if t.strip()]
