@@ -37,6 +37,28 @@
             }
 
             const res = await fetch(fetchUrl, { headers });
+            
+            if(!res.ok) {
+                if(res.status === 401 || res.status === 403) {
+                    spinner.remove();
+                    
+                    const header = document.querySelector('h2.mb-4');
+                    if(header) header.style.display = 'none';
+                    
+                    grid.className = "d-flex flex-column align-items-center justify-content-center w-100";
+                    grid.style.minHeight = "70vh";
+                    
+                    if(fetchUrl.includes('history')) {
+                        grid.innerHTML = '<i class="bi bi-clock-history text-secondary mb-3" style="font-size: 5rem;"></i><h4 class="text-white fw-bold">Keep track of what you watch</h4><p class="text-secondary">Sign in to access your watch history.</p><a href="/login" class="btn btn-primary rounded-pill px-4 mt-2" style="background-color: #3ea6ff; border: none; color: #000; font-weight: bold;"><i class="bi bi-person-circle me-2"></i>Sign In</a>';
+                        return;
+                    } else if(fetchUrl.includes('liked')) {
+                        grid.innerHTML = '<i class="bi bi-hand-thumbs-up-fill text-secondary mb-3" style="font-size: 5rem;"></i><h4 class="text-white fw-bold">Enjoy your favorite videos</h4><p class="text-secondary">Sign in to access videos that you\'ve liked.</p><a href="/login" class="btn btn-primary rounded-pill px-4 mt-2" style="background-color: #3ea6ff; border: none; color: #000; font-weight: bold;"><i class="bi bi-person-circle me-2"></i>Sign In</a>';
+                        return;
+                    }
+                }
+                throw new Error("Failed to fetch videos");
+            }
+            
             const videos = await res.json();
             
             spinner.remove();

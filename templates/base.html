@@ -13,6 +13,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <!-- Global Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+        <div id="globalToast" class="toast align-items-center text-white border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body fw-semibold" id="globalToastMessage">Message</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
         <div class="container-fluid px-3">
             <div class="d-flex align-items-center">
@@ -43,6 +53,9 @@
             <div class="list-group list-group-flush rounded-0 mt-3 position-sticky" style="top: 76px;">
                 <a href="/" class="list-group-item list-group-item-action bg-transparent text-white border-0 py-3 px-4 fw-bold">
                     <i class="bi bi-house-door-fill me-2 fs-5"></i> Home
+                </a>
+                <a href="/trending" class="list-group-item list-group-item-action bg-transparent text-white border-0 py-3 px-4 fw-bold">
+                    <i class="bi bi-fire text-danger me-2 fs-5"></i> Trending
                 </a>
                 <a href="/history" class="list-group-item list-group-item-action bg-transparent text-white border-0 py-3 px-4 fw-bold">
                     <i class="bi bi-clock-history me-2 fs-5"></i> History

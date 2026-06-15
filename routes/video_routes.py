@@ -61,6 +61,17 @@ async def upload_video(
     created_video["creator_id"] = str(created_video["creator_id"])
     return created_video
 
+@router.get("/random", response_model=List[VideoResponse])
+async def random_videos():
+    # Use MongoDB $sample aggregation to return randomized videos
+    cursor = db.videos.aggregate([{"$sample": {"size": 20}}])
+    videos = []
+    async for doc in cursor:
+        doc["id"] = str(doc["_id"])
+        doc["creator_id"] = str(doc["creator_id"])
+        videos.append(doc)
+    return videos
+
 @router.get("/trending", response_model=List[VideoResponse])
 async def trending_videos():
     # Simple trending logic: sort by views descending

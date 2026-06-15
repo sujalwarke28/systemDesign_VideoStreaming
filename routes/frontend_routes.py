@@ -8,7 +8,19 @@ templates = Jinja2Templates(directory="templates")
 
 @router.get("/", response_class=HTMLResponse)
 async def home_page(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "page_title": "<i class='bi bi-house-door-fill me-2'></i>Recommended",
+        "api_endpoint": "/videos/random"
+    })
+
+@router.get("/trending", response_class=HTMLResponse)
+async def trending_page(request: Request):
+    return templates.TemplateResponse("index.html", {
+        "request": request,
+        "page_title": "<i class='bi bi-fire text-danger me-2'></i>Trending Now",
+        "api_endpoint": "/videos/trending"
+    })
 
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):

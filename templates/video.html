@@ -36,20 +36,20 @@
                         <i class="bi bi-hand-thumbs-up me-2 fs-5"></i> <span id="like-count">0</span>
                     </button>
                     <div class="border-start border-secondary my-2"></div>
-                    <button class="btn btn-secondary border-0 rounded-end-pill pe-3" style="background-color: transparent;" onclick="alert('This feature will be added soon')">
+                    <button class="btn btn-secondary border-0 rounded-end-pill pe-3" style="background-color: transparent;" onclick="showToast('This feature will be added soon', 'info')">
                         <i class="bi bi-hand-thumbs-down fs-5"></i>
                     </button>
                 </div>
                 <!-- Share -->
-                <button class="btn btn-secondary rounded-pill px-3 fw-bold d-flex align-items-center" style="background-color: #272727; border: none;" onclick="alert('This feature will be added soon')">
+                <button class="btn btn-secondary rounded-pill px-3 fw-bold d-flex align-items-center" style="background-color: #272727; border: none;" onclick="showToast('This feature will be added soon', 'info')">
                     <i class="bi bi-share me-2 fs-5"></i> Share
                 </button>
                 <!-- Download -->
-                <button class="btn btn-secondary rounded-pill px-3 fw-bold d-flex align-items-center" style="background-color: #272727; border: none;" onclick="alert('This feature will be added soon')">
+                <button class="btn btn-secondary rounded-pill px-3 fw-bold d-flex align-items-center" style="background-color: #272727; border: none;" onclick="showToast('This feature will be added soon', 'info')">
                     <i class="bi bi-download me-2 fs-5"></i> Download
                 </button>
                 <!-- More -->
-                <button class="btn btn-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background-color: #272727; border: none;" onclick="alert('This feature will be added soon')">
+                <button class="btn btn-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background-color: #272727; border: none;" onclick="showToast('This feature will be added soon', 'info')">
                     <i class="bi bi-three-dots"></i>
                 </button>
             </div>
@@ -163,10 +163,10 @@
                                     headers: { "Authorization": `Bearer ${token}` }
                                 });
                                 if(res.ok) {
-                                    alert("Video deleted successfully.");
+                                    showToast("Video deleted successfully.", "success");
                                     window.location.href = '/';
                                 } else {
-                                    alert("Failed to delete video.");
+                                    showToast("Failed to delete video.", "danger");
                                 }
                             }
                         };
@@ -205,7 +205,7 @@
     // Handle Like
     document.getElementById('like-btn').addEventListener('click', async () => {
         const token = localStorage.getItem("access_token");
-        if(!token) return alert("Please login to like!");
+        if(!token) return showToast("Please login to like!", "warning");
         
         const res = await fetch(`/social/videos/${videoId}/like`, {
             method: "POST",
@@ -223,7 +223,7 @@
     document.getElementById('comment-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         const token = localStorage.getItem("access_token");
-        if(!token) return alert("Please login to comment!");
+        if(!token) return showToast("Please login to comment!", "warning");
         
         const text = document.getElementById('comment-text').value;
         const res = await fetch(`/social/videos/${videoId}/comments?text=${encodeURIComponent(text)}`, {

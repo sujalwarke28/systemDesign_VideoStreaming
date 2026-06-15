@@ -3,32 +3,53 @@
 {% block title %}Upload Video - StreamTube{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <h2 class="mb-4 fw-bold">Upload a New Video</h2>
-        <div class="bg-dark p-4 rounded-4 shadow-sm border border-secondary">
+<div class="row justify-content-center mt-3 mb-5">
+    <div class="col-md-10 col-lg-8">
+        <div class="bg-dark p-5 rounded-4 shadow-lg border" style="background-color: #272727 !important; border-color: #3d3d3d !important;">
+            <div class="text-center mb-4">
+                <h3 class="fw-bold mb-1 text-white">Upload Video</h3>
+                <p class="text-secondary">Share your content with the world</p>
+            </div>
+            
             <form id="upload-form">
-                <div class="mb-3">
-                    <label class="form-label text-muted">Video Title</label>
-                    <input type="text" class="form-control bg-secondary border-0 text-white" id="video-title" required>
+                <div class="row">
+                    <div class="col-md-7 pe-md-4">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control bg-transparent text-white" id="video-title" placeholder="Title" style="border: 1px solid #555;" required>
+                            <label for="video-title" class="text-secondary">Video Title (required)</label>
+                        </div>
+                        <div class="form-floating mb-3">
+                            <textarea class="form-control bg-transparent text-white" id="video-desc" placeholder="Description" style="border: 1px solid #555; height: 180px;" required></textarea>
+                            <label for="video-desc" class="text-secondary">Description</label>
+                        </div>
+                        <div class="form-floating mb-4">
+                            <input type="text" class="form-control bg-transparent text-white" id="video-tags" placeholder="Tags" style="border: 1px solid #555;">
+                            <label for="video-tags" class="text-secondary">Tags (comma separated)</label>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-5">
+                        <div class="p-4 border rounded-3 mb-3 text-center d-flex flex-column align-items-center justify-content-center" style="border: 1px dashed #555 !important; background-color: rgba(255,255,255,0.02); min-height: 200px;">
+                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px; background-color: #3d3d3d !important;">
+                                <i class="bi bi-upload text-light fs-3"></i>
+                            </div>
+                            <h6 class="text-white mb-3">Select Video File</h6>
+                            <input class="form-control form-control-sm bg-transparent text-secondary border-0 w-100" type="file" id="video-file" accept="video/mp4,video/x-m4v,video/*" required>
+                        </div>
+
+                        <div class="p-3 border rounded-3 mb-4 text-center d-flex flex-column align-items-center justify-content-center" style="border: 1px dashed #555 !important; background-color: rgba(255,255,255,0.02);">
+                            <i class="bi bi-image text-secondary mb-2 fs-3"></i>
+                            <h6 class="text-white mb-2" style="font-size: 0.95rem;">Upload Thumbnail</h6>
+                            <input class="form-control form-control-sm bg-transparent text-secondary border-0 w-100" type="file" id="thumbnail-file" accept="image/*">
+                        </div>
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label text-muted">Description</label>
-                    <textarea class="form-control bg-secondary border-0 text-white" id="video-desc" rows="4" required></textarea>
+                
+                <hr class="border-secondary mt-2 mb-4">
+                
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary px-5 rounded-pill fw-bold" id="upload-btn" style="background-color: #3ea6ff; border: none; color: #000;">UPLOAD</button>
                 </div>
-                <div class="mb-3">
-                    <label class="form-label text-muted">Tags (comma separated)</label>
-                    <input type="text" class="form-control bg-secondary border-0 text-white" id="video-tags" placeholder="e.g., coding, python, tutorial">
-                </div>
-                <div class="mb-4">
-                    <label class="form-label text-muted">Video File (.mp4)</label>
-                    <input class="form-control bg-secondary border-0 text-white" type="file" id="video-file" accept="video/mp4,video/x-m4v,video/*" required>
-                </div>
-                <div class="mb-4">
-                    <label class="form-label text-muted">Thumbnail Image (optional)</label>
-                    <input class="form-control bg-secondary border-0 text-white" type="file" id="thumbnail-file" accept="image/*">
-                </div>
-                <button type="submit" class="btn btn-primary px-5 rounded-pill fw-bold" id="upload-btn">Upload Video</button>
             </form>
         </div>
     </div>

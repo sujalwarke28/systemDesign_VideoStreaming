@@ -1,3 +1,17 @@
+window.showToast = function(message, type = 'success') {
+    const toastEl = document.getElementById('globalToast');
+    const toastMessage = document.getElementById('globalToastMessage');
+    if(toastEl && toastMessage) {
+        toastMessage.innerText = message;
+        toastEl.className = 'toast align-items-center text-white border-0';
+        toastEl.classList.add(`bg-${type}`);
+        const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+        toast.show();
+    } else {
+        alert(message);
+    }
+};
+
 document.addEventListener("DOMContentLoaded", () => {
     updateNav();
 
@@ -22,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     localStorage.setItem('access_token', data.access_token);
                     window.location.href = '/';
                 } else {
-                    alert('Login failed. Check credentials.');
+                    showToast('Login failed. Check credentials.', 'danger');
                 }
             } catch(e) {
                 console.error(e);
@@ -49,10 +63,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 
                 if(res.ok) {
-                    alert('Registration successful! Please login.');
+                    showToast('Registration successful! Please login.', 'success');
                     document.getElementById('pills-login-tab').click();
                 } else {
-                    alert('Registration failed. Username/email might be taken.');
+                    showToast('Registration failed. Username/email might be taken.', 'danger');
                 }
             } catch(e) {
                 console.error(e);
@@ -66,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const token = localStorage.getItem('access_token');
-            if(!token) return alert('You must be logged in to upload.');
+            if(!token) return showToast('You must be logged in to upload.', 'warning');
 
             const btn = document.getElementById('upload-btn');
             btn.disabled = true;
@@ -90,10 +104,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 
                 if(res.ok) {
-                    alert('Upload successful!');
+                    showToast('Upload successful!', 'success');
                     window.location.href = '/';
                 } else {
-                    alert('Upload failed.');
+                    showToast('Upload failed.', 'danger');
                     btn.disabled = false;
                     btn.innerText = 'Upload Video';
                 }
