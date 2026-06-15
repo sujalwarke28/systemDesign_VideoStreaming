@@ -2,9 +2,11 @@
 
 {% block title %}Watch Video - StreamTube{% endblock %}
 
+{% block sidebar_class %}{% endblock %}
+
 {% block content %}
 <div class="row">
-    <div class="col-lg-8">
+    <div class="col-xl-9 col-lg-8">
         <!-- Video Player -->
         <div class="ratio ratio-16x9 mb-4 bg-black rounded-4 overflow-hidden shadow-lg">
             <video id="video-player" src="/videos/stream/{{ video_id }}" controls autoplay>
@@ -13,15 +15,48 @@
         </div>
         
         <!-- Metadata -->
-        <div class="d-flex justify-content-between align-items-start mb-3">
-            <div>
-                <h3 class="fw-bold mb-1" id="video-title">Loading...</h3>
-                <p class="text-muted mb-0" id="video-views">... views</p>
+        <h4 class="fw-bold mb-2 text-white" id="video-title">Loading...</h4>
+        
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
+            <!-- Left Side: Creator Info -->
+            <div class="d-flex align-items-center gap-3">
+                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="bi bi-person-fill fs-4 text-light"></i>
+                </div>
+                <div class="d-flex flex-column lh-1">
+                    <span class="fw-bold text-white d-flex align-items-center" id="creator-name">Loading...</span>
+                </div>
             </div>
-            <button class="btn btn-outline-light rounded-pill px-4 fw-bold" id="like-btn"><i class="bi bi-hand-thumbs-up me-1"></i> Like <span id="like-count">0</span></button>
+
+            <!-- Right Side: Action Buttons -->
+            <div class="d-flex align-items-center gap-2" id="action-buttons-container">
+                <!-- Like / Dislike -->
+                <div class="btn-group bg-secondary rounded-pill" role="group" style="background-color: #272727 !important;">
+                    <button class="btn btn-secondary border-0 rounded-start-pill ps-3 pe-3 fw-bold d-flex align-items-center" style="background-color: transparent;" id="like-btn">
+                        <i class="bi bi-hand-thumbs-up me-2 fs-5"></i> <span id="like-count">0</span>
+                    </button>
+                    <div class="border-start border-secondary my-2"></div>
+                    <button class="btn btn-secondary border-0 rounded-end-pill pe-3" style="background-color: transparent;" onclick="alert('This feature will be added soon')">
+                        <i class="bi bi-hand-thumbs-down fs-5"></i>
+                    </button>
+                </div>
+                <!-- Share -->
+                <button class="btn btn-secondary rounded-pill px-3 fw-bold d-flex align-items-center" style="background-color: #272727; border: none;" onclick="alert('This feature will be added soon')">
+                    <i class="bi bi-share me-2 fs-5"></i> Share
+                </button>
+                <!-- Download -->
+                <button class="btn btn-secondary rounded-pill px-3 fw-bold d-flex align-items-center" style="background-color: #272727; border: none;" onclick="alert('This feature will be added soon')">
+                    <i class="bi bi-download me-2 fs-5"></i> Download
+                </button>
+                <!-- More -->
+                <button class="btn btn-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; background-color: #272727; border: none;" onclick="alert('This feature will be added soon')">
+                    <i class="bi bi-three-dots"></i>
+                </button>
+            </div>
         </div>
         
-        <div class="bg-dark p-3 rounded-4 border border-secondary mb-5">
+        <div class="p-3 rounded-4 mb-4" style="background-color: #272727;">
+            <p class="fw-bold mb-1 text-white" id="video-views-date">... views • ... ago</p>
             <div id="video-tags" class="mb-2"></div>
             <p id="video-desc" class="mb-0 text-light"></p>
         </div>
@@ -40,10 +75,10 @@
     </div>
     
     <!-- Sidebar -->
-    <div class="col-lg-4 d-none d-lg-block">
-        <h5 class="fw-bold mb-3">Up Next</h5>
-        <div id="up-next-list">
-            <!-- Related/Trending videos injected here -->
+    <div class="col-xl-3 col-lg-4">
+        <h5 class="fw-bold mb-3 text-white">Up Next</h5>
+        <div id="up-next-container" class="d-flex flex-column gap-3">
+            <!-- Up next videos will go here -->
         </div>
     </div>
 </div>
@@ -82,6 +117,27 @@
         // Fetch comments
         loadComments();
         
+            function timeSince(date) {
+                if (!date) return "Unknown";
+                let dateStr = String(date);
+                if (!dateStr.endsWith('Z') && !dateStr.includes('+')) {
+                    dateStr += 'Z';
+                }
+                const seconds = Math.floor((new Date() - new Date(dateStr)) / 1000);
+                if (seconds < 0) return "Just now";
+                let interval = seconds / 31536000;
+                if (interval > 1) return Math.floor(interval) + " years ago";
+                interval = seconds / 2592000;
+                if (interval > 1) return Math.floor(interval) + " months ago";
+                interval = seconds / 86400;
+                if (interval > 1) return Math.floor(interval) + " days ago";
+                interval = seconds / 3600;
+                if (interval > 1) return Math.floor(interval) + " hours ago";
+                interval = seconds / 60;
+                if (interval > 1) return Math.floor(interval) + " minutes ago";
+                return Math.floor(seconds) + " seconds ago";
+            }
+
         // Fetch Video Data
         fetch('/videos/')
             .then(r => r.json())
@@ -89,16 +145,17 @@
                 const video = videos.find(v => v.id === videoId);
                 if(video) {
                     document.getElementById('video-title').innerText = video.title;
-                    document.getElementById('video-views').innerText = `${video.views} views`;
+                    document.getElementById('creator-name').innerHTML = `${video.creator_name || 'Unknown User'} <i class="bi bi-check-circle-fill text-secondary ms-1" style="font-size: 0.8rem;"></i>`;
+                    document.getElementById('video-views-date').innerText = `${video.views.toLocaleString()} views • ${timeSince(video.created_at)}`;
                     document.getElementById('video-desc').innerText = video.description;
-                    document.getElementById('video-tags').innerHTML = video.tags.map(t => `<span class="badge bg-secondary me-1">${t}</span>`).join('');
+                    document.getElementById('video-tags').innerHTML = video.tags.map(t => `<span class="badge bg-secondary me-1 text-primary" style="background-color: transparent !important; padding: 0;">#${t}</span>`).join(' ');
                     
                     // Add delete button if creator
                     if(currentUserId === video.creator_id) {
-                        const btnGroup = document.getElementById('like-btn').parentElement;
+                        const btnGroup = document.getElementById('action-buttons-container');
                         const delBtn = document.createElement('button');
-                        delBtn.className = "btn btn-outline-danger rounded-pill px-4 fw-bold ms-2";
-                        delBtn.innerHTML = '<i class="bi bi-trash3-fill me-1"></i> Delete';
+                        delBtn.className = "btn btn-danger rounded-pill px-3 fw-bold d-flex align-items-center";
+                        delBtn.innerHTML = '<i class="bi bi-trash3-fill me-2 fs-5"></i> Delete';
                         delBtn.onclick = async () => {
                             if(confirm("Are you sure you want to delete this video?")) {
                                 const res = await fetch(`/videos/${videoId}`, {
@@ -116,6 +173,32 @@
                         btnGroup.appendChild(delBtn);
                     }
                 }
+
+                // Up Next Logic
+                const upNextContainer = document.getElementById('up-next-container');
+                const otherVideos = videos.filter(v => v.id !== videoId).slice(0, 10);
+                otherVideos.forEach(v => {
+                    const card = document.createElement('div');
+                    card.className = "d-flex gap-2 mb-2";
+                    card.style.cursor = "pointer";
+                    card.onclick = () => window.location.href = `/watch/${v.id}`;
+                    
+                    const thumbImg = v.thumbnail_filename 
+                        ? `<img src="/uploads/thumbnails/${v.thumbnail_filename}" class="img-fluid rounded-3" alt="Thumbnail" style="aspect-ratio: 16/9; object-fit: cover;">`
+                        : `<div class="bg-secondary rounded-3 d-flex align-items-center justify-content-center" style="aspect-ratio: 16/9;"><i class="bi bi-film fs-3 text-white"></i></div>`;
+                        
+                    card.innerHTML = `
+                        <div class="position-relative" style="width: 140px; min-width: 140px;">
+                            ${thumbImg}
+                        </div>
+                        <div class="d-flex flex-column justify-content-start overflow-hidden">
+                            <h6 class="fw-bold mb-1 text-white text-truncate" style="font-size: 0.95rem;">${v.title}</h6>
+                            <small class="text-secondary text-truncate" style="font-size: 0.85rem;">${v.creator_name || 'Unknown User'}</small>
+                            <small class="text-secondary" style="font-size: 0.8rem;">${v.views.toLocaleString()} views • ${timeSince(v.created_at)}</small>
+                        </div>
+                    `;
+                    upNextContainer.appendChild(card);
+                });
             });
     });
 
