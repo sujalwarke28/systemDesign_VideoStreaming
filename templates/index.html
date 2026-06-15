@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Trending Videos - StreamTube{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 fw-bold">{% if page_title %}{{ page_title | safe }}{% else %}<i class="bi bi-fire text-danger me-2"></i>Trending Now{% endif %}</h2>
+<div class="row row-cols-1 row-cols-md-3 g-4" id="video-grid">
+    <!-- Videos injected here by JS -->
+    <div class="col text-center w-100" id="loading-spinner">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        const grid = document.getElementById('video-grid');
+        const spinner = document.getElementById('loading-spinner');
+        const token = localStorage.getItem('access_token');
+        
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const q = urlParams.get('q');
+            
+            let fetchUrl = '{% if api_endpoint %}{{ api_endpoint }}{% else %}/videos/trending{% endif %}';
+            if(q) {
+                fetchUrl = `/search/?q=${encodeURIComponent(q)}`;
+                document.querySelector('h2').innerHTML = `<i class="bi bi-search me-2"></i>Search Results for "${q}"`;
+            }
+
+            const headers = {};
+            if(token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
+            const res = await fetch(fetchUrl, { headers });
+            const videos = await res.json();
+            
+            spinner.remove();
+            
+            if(videos.length === 0) {
+                grid.innerHTML = '<p class="text-muted">No videos found.</p>';
+                return;
+            }
+            
+            function timeSince(date) {
+                if (!date) return "Unknown";
+                let dateStr = String(date);
+                if (!dateStr.endsWith('Z') && !dateStr.includes('+')) {
+                    dateStr += 'Z';
+                }
+                const seconds = Math.floor((new Date() - new Date(dateStr)) / 1000);
+                if (seconds < 0) return "Just now"; // Handle slight clock skews
+                
+                let interval = seconds / 31536000;
+                if (interval > 1) return Math.floor(interval) + " years ago";
+                interval = seconds / 2592000;
+                if (interval > 1) return Math.floor(interval) + " months ago";
+                interval = seconds / 86400;
+                if (interval > 1) return Math.floor(interval) + " days ago";
+                interval = seconds / 3600;
+                if (interval > 1) return Math.floor(interval) + " hours ago";
+                interval = seconds / 60;
+                if (interval > 1) return Math.floor(interval) + " minutes ago";
+                return Math.floor(seconds) + " seconds ago";
+            }
+
+            videos.forEach(v => {
+                const thumbImg = v.thumbnail_filename 
+                    ? `<img src="/uploads/thumbnails/${v.thumbnail_filename}" class="w-100 h-100 object-fit-cover" alt="Thumbnail">`
+                    : `<div class="w-100 h-100 bg-secondary d-flex align-items-center justify-content-center fallback-thumb"><i class="bi bi-film" style="font-size: 3rem;"></i></div>`;
+                grid.innerHTML += `
+                    <div class="col">
+                        <div class="card h-100 bg-transparent text-white border-0 video-card" style="cursor: pointer;" onclick="window.location.href='/watch/${v.id}'">
+                            <div class="thumbnail-wrapper position-relative" style="height: 200px;">
+                                ${thumbImg}
+                            </div>
+                            <div class="card-body px-1 pt-3 pb-0">
+                                <h6 class="card-title fw-bold text-truncate mb-1" style="line-height: 1.4;">${v.title}</h6>
+                                <p class="card-text text-secondary small mb-0 fw-semibold">${v.creator_name || 'Unknown User'}</p>
+                                <p class="card-text text-secondary small mb-1">${v.views} views • ${timeSince(v.created_at)}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        } catch(err) {
+            console.error(err);
+            spinner.remove();
+            grid.innerHTML = '<p class="text-danger">Failed to load trending videos.</p>';
+        }
+    });
+</script>
+{% endblock %}
