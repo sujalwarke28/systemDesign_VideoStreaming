@@ -10,8 +10,8 @@ class Video(BaseModel):
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     title: str
     description: str
-    filename: str
-    thumbnail_filename: Optional[str] = None
+    cloudfront_url: str
+    thumbnail_url: Optional[str] = None
     creator_id: PyObjectId
     creator_name: str = "Unknown User"
     tags: List[str] = []
@@ -27,8 +27,8 @@ class VideoResponse(BaseModel):
     id: str
     title: str
     description: str
-    filename: str
-    thumbnail_filename: Optional[str] = None
+    cloudfront_url: str
+    thumbnail_url: Optional[str] = None
     creator_id: str
     creator_name: str = "Unknown User"
     tags: List[str]

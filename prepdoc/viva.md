@@ -64,13 +64,13 @@ This document contains a curated list of questions ranging from Beginner to Adva
 ## Advanced Level
 
 **Q9: How exactly do you stream the video without crashing the server's memory?**
-**Answer**: I implemented HTTP Range Requests. Instead of reading the entire file into RAM, the server looks at the `Range` header sent by the browser. It opens the file, seeks to that exact byte offset, reads a small chunk (like 1MB) into memory, and sends it back with an HTTP `206 Partial Content` status. This keeps RAM usage very low regardless of the file size.
+**Answer**: I implemented HTTP Range Requests combined with a CDN. Instead of reading the entire file into the EC2 server's RAM, the HTML5 video player requests the video from our CloudFront CDN. CloudFront intercepts the `Range` header sent by the browser, seeks to that exact byte offset in its edge cache (or from S3), reads a small chunk, and sends it back with an HTTP `206 Partial Content` status. This completely offloads the streaming burden from the backend API.
 
 **Q10: What is Denormalization, and where did you use it?**
 **Answer**: Denormalization is a database optimization technique where redundant data is added to a document to improve read performance. I used it in the Video model. Instead of just saving the `creator_id` and performing an expensive lookup to find the user's name every time the homepage loads, I save the `creator_name` directly in the Video document when it is uploaded.
 
 **Q11: How do you handle file storage in this project, and how would you change it for a production environment at scale?**
-**Answer**: Currently, media files are stored directly on the backend server's local file system in the `uploads/` directory. This is fine for a prototype, but in production, the disk I/O would bottleneck the server. I would migrate the storage to a cloud object store like Amazon S3, and put a Content Delivery Network (CDN) like CloudFront in front of it to cache the videos globally.
+**Answer**: The backend API is hosted on an AWS EC2 instance, but the media files themselves are stored in a highly scalable AWS S3 Object Storage bucket. To prevent disk I/O bottlenecks and minimize latency, a Content Delivery Network (AWS CloudFront) sits in front of the S3 bucket to cache and stream the videos globally from edge locations.
 
 **Q12: How does the Jinja2 templating engine work in your architecture?**
 **Answer**: Instead of building an entirely separate Single Page Application (SPA), FastAPI uses Jinja2 to dynamically generate HTML on the server. When a user requests the `/history` route, the backend injects variables like `page_title` and `api_endpoint` into the `index.html` template. The server compiles this into pure HTML and sends it to the browser. This allows me to reuse the same layout for different pages seamlessly.

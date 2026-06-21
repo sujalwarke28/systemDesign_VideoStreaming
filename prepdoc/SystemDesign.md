@@ -32,11 +32,9 @@ This document details the System Design decisions, trade-offs, and architectures
 2. **Read-Heavy Workload**: A video platform is extremely read-heavy (95% reads, 5% writes). MongoDB's document model allows us to retrieve all necessary data for a video in a single disk read without performing expensive SQL `JOIN` operations.
 3. **Scalability**: MongoDB supports native sharding for horizontal scaling as our dataset grows.
 
-### The Storage Layer: Local File System
-**Decision**: We currently use local disk storage (`uploads/videos/`) for media.
-**Trade-off/Reasoning**: This was chosen for simplicity during the MVP phase.
-**Bottleneck**: Serving large blobs of data directly from the application server will consume vast amounts of disk I/O and network bandwidth, eventually starving the API of resources.
-**Production Solution**: In a real-world scenario, we would use an Object Storage service like AWS S3 to store the videos, paired with a Content Delivery Network (CDN) like AWS CloudFront to cache the videos geographically close to the users.
+### The Storage Layer: AWS S3 & CloudFront CDN
+**Decision**: We use AWS S3 for object storage paired with AWS CloudFront as a CDN.
+**Trade-off/Reasoning**: While local disk storage (`uploads/videos/`) was used in the MVP for simplicity, serving large blobs of data directly from the EC2 application server consumes vast amounts of disk I/O and network bandwidth, eventually starving the API of resources. Migrating to S3 offloads the storage burden, and CloudFront caches the videos geographically close to users for ultra-fast TTFB.
 
 ---
 
@@ -55,8 +53,8 @@ When a user views the homepage, we only need to query the `videos` collection to
 To prevent out-of-memory (OOM) errors, we cannot load a 500MB video file into RAM to send it to the client. We implemented a **Chunked Streaming Response**.
 
 1. The client requests a byte range via the `Range` HTTP header.
-2. The server opens the file descriptor, seeks to the requested byte offset, and reads a fixed chunk (e.g., 1MB).
-3. The server closes the file descriptor and transmits the chunk to the client with an HTTP `206 Partial Content` status code.
+2. The request hits the CloudFront Edge Server, which acts as a proxy to AWS S3.
+3. CloudFront opens the file descriptor, reads the requested byte range from S3 (or its local edge cache), and transmits the chunk to the client with an HTTP `206 Partial Content` status code.
 4. The browser buffers this chunk and seamlessly requests the next one.
 
 ---

@@ -50,8 +50,8 @@ flowchart TD
 ### 3. Watching a Video
 - The user clicks on a video card.
 - They are routed to `/watch/{id}`.
-- The browser loads the HTML5 `<video>` tag, which immediately sends an HTTP Range Request to the backend `/videos/stream/{id}` endpoint.
-- As the video plays, the backend continuously streams chunks of the video file.
+- The browser loads the HTML5 `<video>` tag, which is seamlessly redirected by the backend `/videos/stream/{id}` endpoint to the CloudFront CDN URL.
+- As the video plays, the CloudFront CDN continuously streams chunks of the video file directly from its edge cache, bypassing the EC2 backend entirely.
 - The frontend silently fires a request to `/playlists/history/{id}` to record the fact that the user watched this video.
 
 ### 4. Engaging (Liking & Commenting)
@@ -69,5 +69,5 @@ flowchart TD
 - The user clicks the "Upload Video" button in the top navigation bar.
 - They fill out the title, description, and tags, and select the `.mp4` and image files.
 - The frontend packages this into a `FormData` object and POSTs it to the backend.
-- The backend saves the physical files to `uploads/videos/` and `uploads/thumbnails/`, and writes the metadata document to MongoDB.
+- The backend streams the physical files directly to AWS S3 using `boto3`, and writes the metadata document (including the CDN URL) to MongoDB.
 - The user is redirected to the homepage, where their newly uploaded video is now visible.

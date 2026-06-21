@@ -6,8 +6,8 @@ This document outlines the high-level architecture and component-level interacti
 
 The application follows a standard **3-Tier Architecture**
 1. **Presentation Layer (Frontend)**: Native HTML5, Bootstrap 5, and Vanilla JavaScript rendered dynamically using FastAPI's Jinja2 templating engine.
-2. **Application Layer (Backend)**: Python FastAPI handles all business logic, routing, authentication, and database communications asynchronously.
-3. **Data Layer (Database & Storage)**: MongoDB Atlas (NoSQL) is used for flexible document storage (users, videos, likes, comments). The local server file system acts as the media storage volume.
+2. **Application Layer (Backend)**: Python FastAPI handles all business logic, routing, authentication, and database communications asynchronously. Hosted on AWS EC2 behind an Nginx reverse proxy.
+3. **Data Layer (Database & Storage)**: MongoDB Atlas (NoSQL) is used for flexible document storage. AWS S3 acts as the media object storage, and AWS CloudFront serves as the CDN.
 
 ## Component Architecture Diagram
 
@@ -22,7 +22,9 @@ graph TD
         Server --> Search[Search Engine]
     end
     
-    Video -->|Save/Stream media| LocalStorage[(Local File System)]
+    Video -->|Save media| S3[(AWS S3)]
+    CloudFront((CloudFront CDN)) -->|Fetch/Cache media| S3
+    Client -->|Stream media| CloudFront
     Auth -->|User Data| DB[(MongoDB Atlas)]
     Social -->|Interactions| DB
     Search -->|Query metadata| DB
@@ -46,7 +48,8 @@ graph TD
 ### 3. Database and Storage Technologies
 - **MongoDB Atlas**: Cloud-hosted NoSQL database. Documents are stored in BSON format, making it highly flexible for dynamic schemas like Video metadata.
 - **Motor**: Asynchronous Python driver for MongoDB, ensuring that database I/O does not block the FastAPI event loop.
-- **Local File System**: `uploads/videos/` and `uploads/thumbnails/` act as our Object Storage layer.
+- **AWS S3 (Simple Storage Service)**: Acts as our infinitely scalable Object Storage layer for raw media files.
+- **AWS CloudFront**: A Content Delivery Network (CDN) that caches S3 videos at global edge locations for ultra-fast, low-latency streaming.
 
 ## Security Architecture
 
@@ -55,6 +58,6 @@ graph TD
 
 ## Data Flow (Video Streaming)
 Streaming a video requires special handling to prevent loading a massive file entirely into the server's RAM.
-- We utilize **HTTP Range Requests** (`206 Partial Content`).
-- When the client's video player requests the video, it sends a `Range` header (e.g., `bytes=0-10000`).
-- FastAPI reads only that specific byte range from the disk chunk and sends it back. This allows the user to scrub/seek through the video instantly.
+- We utilize **CloudFront Edge Caching** and **HTTP Range Requests** (`206 Partial Content`).
+- When the client's video player requests the video, it fetches it directly from the CloudFront CDN URL instead of our EC2 server.
+- CloudFront handles the Range headers and seamlessly streams byte chunks from its edge cache, fully offloading the bandwidth and CPU load from our backend API.

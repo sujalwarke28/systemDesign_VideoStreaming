@@ -17,7 +17,7 @@ This document outlines all the core functionalities implemented in the StreamTub
 **Functionality**: Users can upload `.mp4` video files and thumbnail images along with metadata (Title, Description, Tags).
 **How it works**:
 - **Multipart Form Data**: Because we are sending both JSON metadata and large binary files simultaneously, the frontend packages the data using `FormData` and sends a `multipart/form-data` request to FastAPI.
-- **File Storage**: The backend saves the raw video file to the `uploads/videos/` directory and the image to `uploads/thumbnails/`. It generates a unique filename (using UUIDs) to prevent two users from overwriting files if they happen to upload videos with the same name.
+- **File Storage**: The backend streams the raw video and thumbnail files directly into an AWS S3 bucket using the `boto3` SDK. It generates a unique filename (using UUIDs) to prevent two users from overwriting files if they happen to upload videos with the same name.
 - **Denormalization**: A document containing the file paths, title, tags, and crucially, the `creator_name`, is saved to MongoDB. Saving the creator's name directly alongside the video avoids expensive database joins later.
 
 ---
@@ -26,8 +26,8 @@ This document outlines all the core functionalities implemented in the StreamTub
 **Functionality**: Users can watch videos seamlessly, skipping ahead without needing to download the entire video first.
 **How it works**:
 - **HTTP Range Requests**: Browsers utilize the `Range` HTTP header (e.g., `bytes=0-1000000`) when requesting video. 
-- **Chunking**: Instead of loading a 500MB video into the server's RAM (which would quickly crash the server if 100 users watched simultaneously), FastAPI opens the file, seeks to the specific byte offset requested by the browser, reads a small chunk (e.g., 1MB) into memory, and sends it back.
-- **Status Code 206**: The server responds with an HTTP `206 Partial Content` status. The HTML5 `<video>` tag recognizes this and continuously requests the next chunks as the video plays.
+- **Chunking & Edge Caching**: Instead of loading a 500MB video into the EC2 server's RAM, the frontend requests the video from the AWS CloudFront CDN URL. CloudFront handles the Range headers and seamlessly streams byte chunks directly from its global edge cache or the underlying S3 bucket, completely offloading the bandwidth from our API.
+- **Status Code 206**: The CDN responds with an HTTP `206 Partial Content` status. The HTML5 `<video>` tag recognizes this and continuously requests the next chunks as the video plays.
 
 ---
 

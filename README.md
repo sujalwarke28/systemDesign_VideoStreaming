@@ -13,10 +13,10 @@ This project is a production-quality, modular video streaming platform built to 
 - Trending algorithm based on view counts
 
 ## Architecture Overview
-- **Backend**: FastAPI API Gateway & Service Layer.
+- **Backend**: FastAPI API Gateway hosted on AWS EC2 with Nginx.
 - **Database**: MongoDB Atlas.
 - **Frontend**: HTML5, Vanilla JavaScript, Bootstrap 5 (via FastAPI Jinja2).
-- **Storage**: Local Filesystem for Media files.
+- **Storage & Delivery**: AWS S3 Object Storage & CloudFront CDN.
 
 ## Setup Instructions
 1. Ensure Python 3.10+ is installed.
@@ -42,7 +42,5 @@ Interactive API docs are available via Swagger UI at `/docs` when the backend is
 *(Placeholder for repository link)*
 
 ## Future Scope
-- Cloud storage integration (AWS S3)
 - Real-time transcoding (FFmpeg, Celery)
 - Recommendation engine (Machine Learning)
-- Content delivery network (CDN) integration

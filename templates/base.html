@@ -82,12 +82,16 @@
         document.getElementById('hamburger-btn').addEventListener('click', () => {
             const sidebar = document.getElementById('sidebar-nav');
             if(sidebar) {
-                if(sidebar.classList.contains('d-none')) {
-                    sidebar.classList.remove('d-none');
-                    sidebar.classList.add('d-md-block');
-                } else {
-                    sidebar.classList.add('d-none');
+                if(sidebar.classList.contains('d-md-block') || sidebar.classList.contains('d-block')) {
+                    // Currently visible, hide it
                     sidebar.classList.remove('d-md-block');
+                    sidebar.classList.remove('d-block');
+                    sidebar.classList.add('d-none');
+                } else {
+                    // Currently hidden, show it
+                    sidebar.classList.remove('d-none');
+                    sidebar.classList.add('d-block');
+                    sidebar.classList.add('d-md-block');
                 }
             }
         });

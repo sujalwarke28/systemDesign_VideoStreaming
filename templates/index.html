@@ -91,9 +91,9 @@
             }
 
             videos.forEach(v => {
-                const thumbImg = v.thumbnail_filename 
-                    ? `<img src="/uploads/thumbnails/${v.thumbnail_filename}" class="w-100 h-100 object-fit-cover" alt="Thumbnail">`
-                    : `<div class="w-100 h-100 bg-secondary d-flex align-items-center justify-content-center fallback-thumb"><i class="bi bi-film" style="font-size: 3rem;"></i></div>`;
+                const thumbImg = v.thumbnail_url 
+                    ? `<img src="${v.thumbnail_url}" class="w-100 h-100 object-fit-cover" alt="Thumbnail">`
+                    : `<div class="bg-secondary w-100 h-100 d-flex align-items-center justify-content-center"><i class="bi bi-film fs-1 text-white"></i></div>`;
                 grid.innerHTML += `
                     <div class="col">
                         <div class="card h-100 bg-transparent text-white border-0 video-card" style="cursor: pointer;" onclick="window.location.href='/watch/${v.id}'">

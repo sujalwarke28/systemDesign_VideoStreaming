@@ -17,20 +17,19 @@ Designing a highly available, scalable, and responsive video streaming platform 
 - Security: Endpoints should be protected via JWT.
 
 ## High-Level Design
-The system uses a 3-tier architecture. A native HTML/JS frontend powered by Jinja2 interacts with a FastAPI backend. The backend manages local file storage and communicates with MongoDB Atlas for structured and document data.
+The system uses a 3-tier architecture. A native HTML/JS frontend powered by Jinja2 interacts with a FastAPI backend. The backend manages object storage via AWS S3 and CloudFront, and communicates with MongoDB Atlas for structured and document data.
 
 ## Low-Level Design
 The backend is split into RESTful API endpoints grouped by domain: `auth`, `videos`, `search`, `social`, and `playlists`. Data validation is handled via Pydantic models.
 
 ## Scalability Considerations
-- **Storage**: Currently local, but abstracted so it can be easily migrated to S3.
+- **Storage**: AWS S3 object storage for infinite horizontal scaling and CloudFront for CDN edge caching.
 - **Database**: MongoDB Atlas allows easy sharding and horizontal scaling.
 - **Compute**: FastAPI is async, allowing high concurrent request throughput on single nodes. Can be load-balanced easily.
 
-## Bottleneck Analysis
-- **Local Storage I/O**: Serving large video files directly from the app server disk will eventually bottleneck.
-- **Memory**: Buffering large chunks in Python might consume significant RAM under heavy load.
-- *Solution*: Migrate to S3 + CloudFront (CDN) in production.
+## Bottleneck Resolution
+- **Storage I/O**: Serving large video files directly from the EC2 server disk was a bottleneck. This was resolved by migrating storage to AWS S3.
+- **Bandwidth & Memory**: To prevent RAM consumption under heavy load, video delivery is offloaded entirely to AWS CloudFront CDN, which handles HTTP Range requests and edge caching globally.
 
 ## Future Improvements
 - Implement microservices architecture.

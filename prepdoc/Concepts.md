@@ -50,6 +50,12 @@ Before the server sends the HTML file to the browser, Jinja2 parses the file and
 ### 4. Dependency Injection
 FastAPI uses dependency injection extensively (e.g., `Depends(get_current_user)`). Before a route function runs, FastAPI automatically executes the dependency function. If the token is missing or invalid, the dependency throws a 401 error, protecting the route without requiring repetitive authorization code in every endpoint.
 
+### 5. Object Storage & Edge Caching (AWS S3 & CloudFront)
+Unlike traditional file systems that store files in a folder hierarchy on a hard drive, **AWS S3** stores files as "Objects" in a flat bucket, allowing infinite horizontal scaling. **CloudFront** is a Content Delivery Network (CDN) that caches these objects at edge servers geographically close to the user, drastically reducing buffering times and relieving our EC2 backend from streaming heavy files.
+
+### 6. Reverse Proxy & Daemons (Nginx & Systemd)
+Our FastAPI app runs on an **AWS EC2** instance, managed by `systemd` (a background daemon that ensures the app stays alive 24/7). **Nginx** sits in front of the app as a reverse proxy, accepting incoming internet traffic (port 80) and securely forwarding it to the internal FastAPI server.
+
 ## Frontend & UI Concepts
 
 ### 1. Single Page Application (SPA) Aesthetics

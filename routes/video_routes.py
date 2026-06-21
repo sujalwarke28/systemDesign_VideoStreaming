@@ -7,9 +7,10 @@ from database.db import db
 from typing import List, Optional
 import os
 import uuid
-import shutil
 import re
 from bson import ObjectId
+from fastapi.responses import RedirectResponse
+from services.aws_service import upload_file_to_s3, delete_file_from_s3
 
 router = APIRouter(prefix="/videos", tags=["Videos"])
 
@@ -28,26 +29,23 @@ async def upload_video(
     thumbnail_file: Optional[UploadFile] = File(None),
     current_user: User = Depends(get_current_user)
 ):
-    video_filename = f"{uuid.uuid4()}_{video_file.filename}"
-    video_path = os.path.join(VIDEO_UPLOAD_DIR, video_filename)
-    
-    with open(video_path, "wb") as buffer:
-        shutil.copyfileobj(video_file.file, buffer)
+    video_filename = f"videos/{uuid.uuid4()}_{video_file.filename}"
+    cloudfront_video_url = await upload_file_to_s3(video_file, video_filename)
+    if not cloudfront_video_url:
+        raise HTTPException(status_code=500, detail="Failed to upload video to S3")
         
-    thumb_filename = None
+    cloudfront_thumb_url = None
     if thumbnail_file:
-        thumb_filename = f"{uuid.uuid4()}_{thumbnail_file.filename}"
-        thumb_path = os.path.join(THUMBNAIL_UPLOAD_DIR, thumb_filename)
-        with open(thumb_path, "wb") as buffer:
-            shutil.copyfileobj(thumbnail_file.file, buffer)
+        thumb_filename = f"thumbnails/{uuid.uuid4()}_{thumbnail_file.filename}"
+        cloudfront_thumb_url = await upload_file_to_s3(thumbnail_file, thumb_filename)
             
     tag_list = [t.strip() for t in tags.split(",") if t.strip()]
     
     new_video = Video(
         title=title,
         description=description,
-        filename=video_filename,
-        thumbnail_filename=thumb_filename,
+        cloudfront_url=cloudfront_video_url,
+        thumbnail_url=cloudfront_thumb_url,
         creator_id=str(current_user.id),
         creator_name=current_user.username,
         tags=tag_list
@@ -56,7 +54,7 @@ async def upload_video(
     result = await db.videos.insert_one(new_video.model_dump(by_alias=True, exclude_none=True))
     created_video = await db.videos.find_one({"_id": result.inserted_id})
     if not created_video:
-        raise HTTPException(status_code=500, detail="Failed to create video")
+        raise HTTPException(status_code=500, detail="Failed to save video metadata")
     created_video["id"] = str(created_video["_id"])
     created_video["creator_id"] = str(created_video["creator_id"])
     return created_video
@@ -107,83 +105,39 @@ async def delete_video(video_id: str, current_user: User = Depends(get_current_u
     if video["creator_id"] != str(current_user.id):
         raise HTTPException(status_code=403, detail="Not authorized to delete this video")
         
+    # Delete files from S3/Storage
     try:
-        os.remove(os.path.join(VIDEO_UPLOAD_DIR, video["filename"]))
-        if video.get("thumbnail_filename"):
-            os.remove(os.path.join(THUMBNAIL_UPLOAD_DIR, video["thumbnail_filename"]))
-    except Exception:
-        pass # ignore file not found
+        video_key = "/".join(video["cloudfront_url"].split("/")[-2:])
+        delete_file_from_s3(video_key)
+        if video.get("thumbnail_url"):
+            thumb_key = "/".join(video["thumbnail_url"].split("/")[-2:])
+            delete_file_from_s3(thumb_key)
+    except Exception as e:
+        print(f"Cleanup error: {e}")
         
     await db.videos.delete_one({"_id": obj_id})
     return {"detail": "Video deleted successfully"}
 
+
+
+# Video Streaming Algorithm (Chunking & Range Requests)
 @router.get("/stream/{video_id}")
 async def stream_video(video_id: str, request: Request, response: Response):
+    """
+    Redirects the client directly to the CloudFront CDN URL.
+    The HTML5 video player natively handles the 302 redirect and streams via the CDN.
+    """
     try:
         obj_id = ObjectId(video_id)
     except:
         raise HTTPException(status_code=400, detail="Invalid video ID")
         
     video = await db.videos.find_one({"_id": obj_id})
-    if not video:
+    if not video or "cloudfront_url" not in video:
         raise HTTPException(status_code=404, detail="Video not found")
         
-    video_path = os.path.join(VIDEO_UPLOAD_DIR, video["filename"])
-    if not os.path.exists(video_path):
-        raise HTTPException(status_code=404, detail="Video file not found on server")
-
     # Increment view count
     await db.videos.update_one({"_id": obj_id}, {"$inc": {"views": 1}})
 
-    file_size = os.path.getsize(video_path)
-    range_header = request.headers.get("Range")
-    
-    import mimetypes
-    mime_type, _ = mimetypes.guess_type(video_path)
-    if not mime_type:
-        mime_type = "video/mp4"
-
-    if not range_header:
-        def file_iterator():
-            with open(video_path, "rb") as f:
-                while chunk := f.read(1024 * 1024):
-                    yield chunk
-        return StreamingResponse(file_iterator(), media_type=mime_type)
-    
-    byte1, byte2 = 0, None
-    match = re.search(r"bytes=(\d+)-(\d*)", range_header)
-    if match:
-        groups = match.groups()
-        if groups[0]:
-            byte1 = int(groups[0])
-        if groups[1]:
-            byte2 = int(groups[1])
-            
-    if byte2 is None:
-        byte2 = file_size - 1
-        
-    length = byte2 - byte1 + 1
-    
-    def range_iterator(path, start, remaining):
-        with open(path, "rb") as f:
-            f.seek(start)
-            chunk_size = 1024 * 1024 # 1MB
-            while remaining > 0:
-                data = f.read(min(chunk_size, remaining))
-                if not data:
-                    break
-                remaining -= len(data)
-                yield data
-                
-    headers = {
-        "Content-Range": f"bytes {byte1}-{byte2}/{file_size}",
-        "Accept-Ranges": "bytes",
-        "Content-Length": str(length),
-    }
-    
-    return StreamingResponse(
-        range_iterator(video_path, byte1, length),
-        headers=headers,
-        media_type=mime_type,
-        status_code=status.HTTP_206_PARTIAL_CONTENT
-    )
+    # Redirect to CDN
+    return RedirectResponse(url=video["cloudfront_url"], status_code=status.HTTP_302_FOUND)
