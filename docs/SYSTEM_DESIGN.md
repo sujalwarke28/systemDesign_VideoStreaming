@@ -15,7 +15,7 @@ Designing a highly available, scalable, and responsive video streaming platform 
 - Scalability: The backend should handle increasing numbers of concurrent viewers.
 - Low Latency: Streaming must begin with minimal buffering.
 - Security: Endpoints should be protected via JWT.
-
+v
 ## High-Level Design
 The system uses a 3-tier architecture. A native HTML/JS frontend powered by Jinja2 interacts with a FastAPI backend. The backend manages object storage via AWS S3 and CloudFront, and communicates with MongoDB Atlas for structured and document data.
 
